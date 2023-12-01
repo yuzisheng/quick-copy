@@ -22,31 +22,40 @@ class CopyTool(QgsMapToolIdentifyFeature):
     def __init__(self, iface):
         self.iface = iface
         self.canvas = self.iface.mapCanvas()
-        self.layer = self.iface.activeLayer()
-        QgsMapToolIdentifyFeature.__init__(self, self.canvas, self.layer)
-        self.iface.currentLayerChanged.connect(self.active_changed)
-        self.cursor = QCursor(QPixmap(":/icons/quick_copy_cursor.png"), 1, 1)
+        self.vector_layer = None
+        if isinstance(self.iface.activeLayer(), QgsVectorLayer) and self.iface.activeLayer().isSpatial():
+            self.vector_layer = self.iface.activeLayer()
+        QgsMapToolIdentifyFeature.__init__(self, self.canvas, self.vector_layer)
+        self.iface.currentLayerChanged.connect(self.change_layer)
 
-    def active_changed(self, layer):
-        self.layer.removeSelection()
-        if isinstance(layer, QgsVectorLayer) and layer.isSpatial():
-            self.layer = layer
-            self.setLayer(self.layer)
+    def change_layer(self, current_layer):
+        if self.vector_layer:
+            self.vector_layer.removeSelection()
+        if isinstance(current_layer, QgsVectorLayer) and current_layer.isSpatial():
+            self.vector_layer = current_layer
+            self.setLayer(current_layer)
+        else:
+            self.vector_layer = None
 
     def activate(self):
-        self.canvas.setCursor(self.cursor)
+        self.canvas.setCursor(QCursor(QPixmap(":/icons/quick_copy_cursor.png"), 1, 1))
 
     def canvasPressEvent(self, event):
         clipboard = QApplication.clipboard()
-        identified_features = self.identify(event.x(), event.y(), [self.layer], QgsMapToolIdentify.TopDownAll)
-        self.layer.selectByIds([f.mFeature.id() for f in identified_features], QgsVectorLayer.SetSelection)
-        selected_features = self.layer.selectedFeatures()
-        if selected_features is not None and len(selected_features) != 0:
-            clipboard.setText(f'{selected_features[0].geometry().asWkt()}')
-            self.iface.messageBar().pushMessage("[QuickCopy] Feature selected and wkt copied. ({})".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+        if self.vector_layer:
+            identified_features = self.identify(event.x(), event.y(), [self.vector_layer], QgsMapToolIdentify.TopDownAll)
+            self.vector_layer.selectByIds([f.mFeature.id() for f in identified_features[:1]], QgsVectorLayer.SetSelection)
+            selected_features = self.vector_layer.selectedFeatures()
+            if len(selected_features) != 0:
+                clipboard.setText(f"{selected_features[0].geometry().asWkt()}")
+                self.iface.messageBar().pushMessage("[QuickCopy] Feature selected and wkt copied. ({})".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            else:
+                clipboard.setText("[QuickCopy] No feature selected.")
+                self.iface.messageBar().pushMessage("[QuickCopy] No feature selected. ({})".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         else:
             clipboard.setText("[QuickCopy] No feature selected.")
-            self.iface.messageBar().pushMessage("[QuickCopy] No feature selected. ({})".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            self.iface.messageBar().pushMessage("[QuickCopy] Current layer is not a vector layer. ({})".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
 
     def deactivate(self):
-        self.layer.removeSelection()
+        if self.vector_layer:
+            self.vector_layer.removeSelection()

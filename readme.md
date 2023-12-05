@@ -2,7 +2,7 @@
 
 > This plugin makes copying WKT easier.
 
-+ Code: https://github.com/yuzisheng/quick_copy/
++ Code: https://github.com/yuzisheng/quick-copy/
 + Plugin: https://plugins.qgis.org/plugins/QuickCopy/
 + Author: Zisheng Yu
 + Email: yuzisheng.xidian@qq.com

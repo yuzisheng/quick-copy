@@ -8,8 +8,8 @@ email=yuzisheng.xidian@qq.com
 
 about=Click to select one feature and copy the wkt to paste-board automatically.
 
-tracker=https://github.com/yuzisheng/quick_copy/issues
-repository=https://github.com/yuzisheng/quick_copy
+tracker=https://github.com/yuzisheng/quick-copy/issues
+repository=https://github.com/yuzisheng/quick-copy
 # End of mandatory metadata
 
 # Recommended items:
@@ -21,7 +21,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=python,wkt
 
-homepage=https://github.com/yuzisheng/quick_copy
+homepage=https://github.com/yuzisheng/quick-copy
 category=Plugins
 icon=icons/quick_copy_cursor.png
 # experimental flag

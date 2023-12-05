@@ -44,11 +44,12 @@ class CopyTool(QgsMapToolIdentifyFeature):
         clipboard = QApplication.clipboard()
         if self.vector_layer:
             identified_features = self.identify(event.x(), event.y(), [self.vector_layer], QgsMapToolIdentify.TopDownAll)
-            self.vector_layer.selectByIds([f.mFeature.id() for f in identified_features[:1]], QgsVectorLayer.SetSelection)
-            selected_features = self.vector_layer.selectedFeatures()
-            if len(selected_features) != 0:
-                clipboard.setText(f"{selected_features[0].geometry().asWkt()}")
-                self.iface.messageBar().pushMessage("[QuickCopy] Feature selected and wkt copied. ({})".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+            if len(identified_features) != 0:
+                selected_feature_id = identified_features[0].mFeature.id()
+                self.vector_layer.selectByIds([selected_feature_id], QgsVectorLayer.SetSelection)
+                selected_feature = self.vector_layer.selectedFeatures()[0]
+                clipboard.setText(f"{selected_feature.geometry().asWkt()}")
+                self.iface.messageBar().pushMessage("[QuickCopy] Feature selected and wkt copied: FeatureId={}. ({})".format(selected_feature_id, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
             else:
                 clipboard.setText("[QuickCopy] No feature selected.")
                 self.iface.messageBar().pushMessage("[QuickCopy] No feature selected. ({})".format(datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
